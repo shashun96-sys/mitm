@@ -1,7 +1,7 @@
 {
   "name": "shashu",
   "version": "1.0.0",
-  "description": "",
+  "description": "\"# mitm\"",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,5 +12,13 @@
   "type": "commonjs",
   "dependencies": {
     "angular": "^1.8.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shashun96-sys/mitm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shashun96-sys/mitm/issues"
+  },
+  "homepage": "https://github.com/shashun96-sys/mitm#readme"
 }
