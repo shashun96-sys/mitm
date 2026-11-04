@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Angular project</title>
+     <script src="node_modules/angular/angular.js"></script>
+     <script src="a.js"></script>
+
+</head>
+<body>
+
+    
+    <div ng-controller="CollegeController">
+        <h2>welcome to {{collegeName}}</h2>
+        <hr>
+        <div ng-controller="StudentController">
+            <h2>student registration</h2>
+            <label>student name:</label>
+            <input type="text" ng-model="name">
+            <br><br>
+
+            <label>department:</label>
+            <input type="text" ng-model="department">
+            <br><br>
+            <label>semester:</label>
+            <input type="text" ng-model="semester">
+            <hr>
+            <button ng-click="addStudent()">
+                Register Student
+            </button>
+
+            <hr>
+
+            <h2>Registered Students</h2>
+
+            <ul>
+                <li ng-repeat="student in students">
+                    {{ student }}
+                </li>
+            </ul>
+
+
+        </div>
+    </div>
+</html>
