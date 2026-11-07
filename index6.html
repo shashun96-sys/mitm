@@ -1,0 +1,572 @@
+
+<!DOCTYPE html>
+<html lang="en" ng-app="doctorApp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MITM CLUB - Doctor Appointment Booking</title>
+
+    <link rel="stylesheet" href="styles2.css">
+
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body ng-controller="MainController">
+
+    <!-- FIXED NAVIGATION -->
+    <header class="header">
+
+        <a href="" class="logo" ng-click="goTo('home')">
+            <span class="logo-icon">✚</span>
+            <span>
+                <strong>MITM CLUB</strong>
+                <small>Doctor Appointment Booking & Slot Manager</small>
+            </span>
+        </a>
+
+        <nav>
+            <a href="" ng-click="goTo('home')"
+               ng-class="{active: page === 'home'}">Home</a>
+
+            <a href="" ng-click="goTo('doctors')"
+               ng-class="{active: page === 'doctors'}">Doctors</a>
+
+            <a href="" ng-click="goTo('booking')"
+               ng-class="{active: page === 'booking'}">Book Appointment</a>
+
+            <a href="" ng-click="goTo('appointments')"
+               ng-class="{active: page === 'appointments'}">My Appointments</a>
+        </nav>
+
+        <div class="account-area">
+
+            <span class="user-email" ng-if="user">
+                {{user.email}}
+            </span>
+
+            <button class="btn btn-light"
+                    ng-if="!user"
+                    ng-click="openAuth('login')">
+                Login
+            </button>
+
+            <button class="btn btn-danger"
+                    ng-if="user"
+                    ng-click="logout()">
+                Logout
+            </button>
+
+        </div>
+    </header>
+
+    <main>
+
+        <!-- ==================================
+             HOME PAGE
+        =================================== -->
+        <section ng-show="page === 'home'">
+
+            <div class="hero">
+
+                <div class="hero-content">
+
+                    <span class="hero-tag">
+                        WELCOME TO MITM CLUB
+                    </span>
+
+                    <h1>Your Health,<br>Our Priority</h1>
+
+                    <p>
+                        Book appointments with experienced doctors.
+                        Manage your appointments easily and conveniently.
+                    </p>
+
+                    <button class="btn btn-primary"
+                            ng-click="goTo('doctors')">
+                        Find a Doctor
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- FEATURES -->
+            <section class="section">
+
+                <div class="section-heading">
+                    <h2>Why Choose MITM CLUB?</h2>
+                    <p>Healthcare appointment management made simple.</p>
+                </div>
+
+                <div class="feature-grid">
+
+                    <div class="feature-card">
+                        <span>👨‍⚕️</span>
+                        <h3>Experienced Doctors</h3>
+                        <p>Find doctors from different departments.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <span>📅</span>
+                        <h3>Easy Booking</h3>
+                        <p>Book appointments using available time slots.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <span>🔒</span>
+                        <h3>Secure Login</h3>
+                        <p>Access appointments using your patient account.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <span>📋</span>
+                        <h3>Appointment History</h3>
+                        <p>View and manage your appointments.</p>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ONLY FOUR FEATURED DOCTORS -->
+            <section class="section featured-section">
+
+                <div class="section-heading">
+                    <h2>Featured Doctors</h2>
+                    <p>Meet some of our available doctors.</p>
+                </div>
+
+                <div class="doctor-grid">
+
+                    <div class="doctor-card"
+                         ng-repeat="doctor in featuredDoctors">
+
+                        <div class="doctor-image">
+
+                            <img ng-if="doctor.image_url"
+                                 ng-src="{{doctor.image_url}}"
+                                 alt="Doctor">
+
+                            <span ng-if="!doctor.image_url">👨‍⚕️</span>
+
+                        </div>
+
+                        <h3>{{doctor.name}}</h3>
+
+                        <p class="specialty">{{doctor.specialty}}</p>
+
+                        <p>{{doctor.qualification}}</p>
+
+                        <p>{{doctor.experience}} years experience</p>
+
+                        <p class="fee">
+                            Consultation Fee: ₹{{doctor.consultation_fee}}
+                        </p>
+
+                        <button class="btn btn-primary"
+                                ng-click="chooseDoctor(doctor)">
+                            Book Appointment
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="center-button">
+                    <button class="btn btn-primary"
+                            ng-click="goTo('doctors')">
+                        View All Doctors
+                    </button>
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <!-- ==================================
+             DOCTORS PAGE
+        =================================== -->
+        <section ng-show="page === 'doctors'" class="section page-section">
+
+            <div class="section-heading">
+                <h1>Our Doctors</h1>
+                <p>Choose from our complete doctor directory.</p>
+            </div>
+
+            <div class="doctor-count">
+                Available Doctors: {{filteredDoctors().length}}
+            </div>
+
+            <div class="search-row">
+
+                <input type="text"
+                       ng-model="searchText"
+                       placeholder="Search doctor or specialty...">
+
+                <select ng-model="selectedSpecialty">
+
+                    <option value="">All Departments</option>
+
+                    <option ng-repeat="specialty in specialties"
+                            value="{{specialty}}">
+                        {{specialty}}
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="doctor-grid">
+
+                <div class="doctor-card"
+                     ng-repeat="doctor in filteredDoctors()">
+
+                    <div class="doctor-image">
+
+                        <img ng-if="doctor.image_url"
+                             ng-src="{{doctor.image_url}}"
+                             alt="Doctor">
+
+                        <span ng-if="!doctor.image_url">👨‍⚕️</span>
+
+                    </div>
+
+                    <h3>{{doctor.name}}</h3>
+
+                    <p class="specialty">{{doctor.specialty}}</p>
+
+                    <p>{{doctor.qualification}}</p>
+
+                    <p>{{doctor.experience}} years experience</p>
+
+                    <p class="fee">
+                        Consultation Fee: ₹{{doctor.consultation_fee}}
+                    </p>
+
+                    <button class="btn btn-primary"
+                            ng-click="chooseDoctor(doctor)">
+                        Book Appointment
+                    </button>
+
+                </div>
+
+            </div>
+
+            <p class="empty-message"
+               ng-if="doctors.length === 0">
+                No doctors available. Please add doctors in Supabase.
+            </p>
+
+            <p class="empty-message"
+               ng-if="doctors.length > 0 && filteredDoctors().length === 0">
+                No doctors match your search.
+            </p>
+
+        </section>
+
+
+        <!-- ==================================
+             BOOK APPOINTMENT PAGE
+        =================================== -->
+        <section ng-show="page === 'booking'"
+                 class="section booking-section page-section">
+
+            <div class="section-heading">
+                <h1>Book Your Appointment</h1>
+                <p>Enter your details and select an appointment slot.</p>
+            </div>
+
+            <div class="booking-card" ng-if="selectedDoctor">
+
+                <div class="selected-doctor">
+
+                    <h3>{{selectedDoctor.name}}</h3>
+
+                    <p>{{selectedDoctor.specialty}}</p>
+
+                    <p>
+                        Consultation Fee:
+                        ₹{{selectedDoctor.consultation_fee}}
+                    </p>
+
+                </div>
+
+                <form ng-submit="bookAppointment()">
+
+                    <label>Patient Name</label>
+
+                    <input type="text"
+                           ng-model="booking.patientName"
+                           placeholder="Enter patient name"
+                           required>
+
+                    <label>Phone Number</label>
+
+                    <input type="tel"
+                           ng-model="booking.phone"
+                           placeholder="10 digit mobile number"
+                           pattern="[0-9]{10}"
+                           maxlength="10"
+                           required>
+
+                    <label>Appointment Date</label>
+
+                    <input type="date"
+                           ng-model="booking.date"
+                           min="{{minDate}}"
+                           required>
+
+                    <label>Appointment Time</label>
+
+                    <select ng-model="booking.time" required>
+
+                        <option value="">Select Time Slot</option>
+
+                        <option ng-repeat="slot in timeSlots"
+                                value="{{slot}}">
+                            {{slot}}
+                        </option>
+
+                    </select>
+
+                    <label>Reason for Appointment</label>
+
+                    <textarea ng-model="booking.reason"
+                              rows="4"
+                              placeholder="Enter reason for consultation">
+                    </textarea>
+
+                    <button type="submit"
+                            class="btn btn-primary full-width"
+                            ng-disabled="saving">
+
+                        {{saving ? 'Booking...' : 'Confirm Appointment'}}
+
+                    </button>
+
+                </form>
+
+            </div>
+
+            <div class="booking-placeholder" ng-if="!selectedDoctor">
+
+                <h2>No Doctor Selected</h2>
+
+                <p>Please select a doctor before booking an appointment.</p>
+
+                <button class="btn btn-primary"
+                        ng-click="goTo('doctors')">
+                    Browse Doctors
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================
+             MY APPOINTMENTS PAGE
+        =================================== -->
+        <section ng-show="page === 'appointments'"
+                 class="section page-section">
+
+            <div class="section-heading">
+                <h1>My Appointments</h1>
+                <p>View and manage your booked appointments.</p>
+            </div>
+
+            <div class="login-notice" ng-if="!user">
+
+                <h3>Login Required</h3>
+
+                <p>Please log in to view your appointments.</p>
+
+                <button class="btn btn-primary"
+                        ng-click="openAuth('login')">
+                    Login
+                </button>
+
+            </div>
+
+            <div ng-if="user">
+
+                <div class="appointment-toolbar">
+
+                    <button class="btn btn-primary"
+                            ng-click="loadAppointments()"
+                            ng-disabled="loadingAppointments">
+
+                        {{loadingAppointments
+                            ? 'Loading...'
+                            : 'Refresh Appointments'}}
+
+                    </button>
+
+                </div>
+
+                <div class="appointment-list">
+
+                    <div class="appointment-card"
+                         ng-repeat="appointment in appointments">
+
+                        <div class="appointment-header">
+
+                            <h3>{{appointment.patient_name}}</h3>
+
+                            <span class="status"
+                                  ng-class="appointment.status === 'Confirmed'
+                                  ? 'confirmed' : 'cancelled'">
+
+                                {{appointment.status}}
+
+                            </span>
+
+                        </div>
+
+                        <p>
+                            <strong>Doctor:</strong>
+                            {{appointment.doctors.name}}
+                        </p>
+
+                        <p>
+                            <strong>Department:</strong>
+                            {{appointment.doctors.specialty}}
+                        </p>
+
+                        <p>
+                            <strong>Date:</strong>
+                            {{appointment.appointment_date}}
+                        </p>
+
+                        <p>
+                            <strong>Time:</strong>
+                            {{appointment.appointment_time}}
+                        </p>
+
+                        <p>
+                            <strong>Phone:</strong>
+                            {{appointment.patient_phone}}
+                        </p>
+
+                        <p>
+                            <strong>Reason:</strong>
+                            {{appointment.reason || 'Not specified'}}
+                        </p>
+
+                        <button class="btn btn-danger"
+                                ng-if="appointment.status === 'Confirmed'"
+                                ng-click="cancelAppointment(appointment)">
+                            Cancel Appointment
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <p class="empty-message"
+                   ng-if="appointments.length === 0">
+                    You have not booked any appointments yet.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==================================
+         LOGIN / REGISTER MODAL
+    =================================== -->
+    <div class="modal-overlay"
+         ng-if="authVisible"
+         ng-click="closeAuth()">
+
+        <div class="modal"
+             ng-click="$event.stopPropagation()">
+
+            <button class="close-button"
+                    ng-click="closeAuth()">×</button>
+
+            <h2 ng-if="authMode === 'login'">Patient Login</h2>
+
+            <h2 ng-if="authMode === 'register'">Create Account</h2>
+
+            <form ng-submit="authenticate()">
+
+                <label>Email Address</label>
+
+                <input type="email"
+                       ng-model="auth.email"
+                       placeholder="Enter email"
+                       required>
+
+                <label>Password</label>
+
+                <input type="password"
+                       ng-model="auth.password"
+                       minlength="6"
+                       placeholder="Enter password"
+                       required>
+
+                <button class="btn btn-primary full-width"
+                        type="submit"
+                        ng-disabled="authLoading">
+
+                    {{authLoading ? 'Please wait...' :
+                      (authMode === 'login' ? 'Login' : 'Register')}}
+
+                </button>
+
+            </form>
+
+            <p ng-if="authMode === 'login'">
+                Don't have an account?
+                <a href="" ng-click="switchAuth('register')">
+                    Register here
+                </a>
+            </p>
+
+            <p ng-if="authMode === 'register'">
+                Already registered?
+                <a href="" ng-click="switchAuth('login')">
+                    Login here
+                </a>
+            </p>
+
+        </div>
+    </div>
+
+
+    <!-- NOTIFICATION -->
+    <div class="toast"
+         ng-if="message"
+         ng-class="messageType">
+
+        {{message}}
+
+        <button ng-click="clearMessage()">×</button>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <footer class="footer">
+
+        <h2>MITM CLUB</h2>
+
+        <p>Doctor Appointment Booking & Slot Manager</p>
+
+        <p>© 2026 MITM CLUB. All Rights Reserved.</p>
+
+    </footer>
+
+    <script src="app2.js"></script>
+
+</body>
+</html>
